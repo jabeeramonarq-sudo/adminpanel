@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Users as UsersIcon, Plus, Edit2, Trash2, Loader2, Shield, User, Mail, Send } from "lucide-react";
+import { Users as UsersIcon, Plus, Edit2, Trash2, Loader2, Shield, User, UserX, UserCheck } from "lucide-react";
 import { toast } from "sonner";
 import api from "@/lib/api";
 import { AdminLayout } from "@/components/admin/AdminLayout";
@@ -16,6 +16,7 @@ interface User {
     email: string;
     role: string;
     createdAt: string;
+    isActive: boolean;
 }
 
 export default function UsersPage() {
@@ -31,13 +32,12 @@ export default function UsersPage() {
         password: "",
         role: "admin"
     });
-    const [inviteMode, setInviteMode] = useState(false);
 
     const fetchUsers = async () => {
         try {
             const response = await api.get("/users");
             setUsers(response.data);
-        } catch (error) {
+        } catch (_error) {
             toast.error("Failed to fetch users");
         } finally {
             setIsLoading(false);
@@ -53,20 +53,11 @@ export default function UsersPage() {
         setIsSubmitting(true);
         try {
             if (editingUser) {
-                // Update existing user
                 await api.put(`/users/${editingUser._id}`, formData);
                 toast.success("User updated successfully");
-            } else if (inviteMode) {
-                // Send invitation
-                await api.post("/invitations/send", {
-                    email: formData.email,
-                    role: formData.role
-                });
-                toast.success("Invitation sent successfully");
             } else {
-                // Create new user directly
                 await api.post("/users", formData);
-                toast.success("User created successfully");
+                toast.success("Admin created successfully");
             }
             fetchUsers();
             setOpen(false);
@@ -89,12 +80,22 @@ export default function UsersPage() {
         }
     };
 
+    const toggleAccess = async (user: User, nextActive: boolean) => {
+        try {
+            await api.patch(`/users/${user._id}/access`, { isActive: nextActive });
+            toast.success(nextActive ? "Access enabled" : "Access disabled");
+            fetchUsers();
+        } catch (error: any) {
+            toast.error(error.response?.data?.error || "Failed to update access");
+        }
+    };
+
     const handleEdit = (user: User) => {
         setEditingUser(user);
         setFormData({
             name: user.name,
             email: user.email,
-            password: "", // Don't pre-fill password
+            password: "",
             role: user.role
         });
         setOpen(true);
@@ -102,15 +103,12 @@ export default function UsersPage() {
 
     const resetForm = () => {
         setEditingUser(null);
-        setInviteMode(false);
         setFormData({ name: "", email: "", password: "", role: "admin" });
     };
 
     const handleOpenChange = (isOpen: boolean) => {
         setOpen(isOpen);
-        if (!isOpen) {
-            resetForm();
-        }
+        if (!isOpen) resetForm();
     };
 
     return (
@@ -118,22 +116,33 @@ export default function UsersPage() {
             <div className="mb-10 flex items-center justify-between">
                 <div>
                     <h1 className="text-3xl font-bold text-white tracking-tight">User Management</h1>
-                    <p className="text-slate-400">Manage admin users and their permissions.</p>
+                    <p className="text-slate-400">Create admins directly and block/unblock old access.</p>
                 </div>
                 <Dialog open={open} onOpenChange={handleOpenChange}>
                     <DialogTrigger asChild>
-                        <Button className="bg-primary hover:bg-primary/90 text-white shadow-lg shadow-primary/20" onClick={() => setInviteMode(true)}>
-                            <Mail size={18} className="mr-2" /> Invite User
+                        <Button className="bg-primary hover:bg-primary/90 text-white shadow-lg shadow-primary/20">
+                            <Plus size={18} className="mr-2" /> Add Admin
                         </Button>
                     </DialogTrigger>
                     <DialogContent className="bg-slate-900 border-slate-800 text-white sm:max-w-lg">
                         <DialogHeader>
-                            <DialogTitle>{editingUser ? "Edit User" : inviteMode ? "Invite New User" : "Create New User"}</DialogTitle>
+                            <DialogTitle>{editingUser ? "Edit User" : "Create New Admin"}</DialogTitle>
                             <DialogDescription className="text-slate-400">
-                                {editingUser ? "Update user information and permissions." : inviteMode ? "Send an invitation email to a new admin user." : "Add a new admin user to the system."}
+                                {editingUser ? "Update admin details and role." : "Add new admin with email and password."}
                             </DialogDescription>
                         </DialogHeader>
                         <form onSubmit={handleSubmit} className="space-y-4 py-4">
+                            <div className="space-y-2">
+                                <Label htmlFor="name">Full Name</Label>
+                                <Input
+                                    id="name"
+                                    placeholder="John Doe"
+                                    className="bg-slate-950 border-slate-800 text-white"
+                                    value={formData.name}
+                                    onChange={e => setFormData({ ...formData, name: e.target.value })}
+                                    required
+                                />
+                            </div>
                             <div className="space-y-2">
                                 <Label htmlFor="email">Email</Label>
                                 <Input
@@ -146,33 +155,18 @@ export default function UsersPage() {
                                     required
                                 />
                             </div>
-                            {!inviteMode && (
-                                <>
-                                    <div className="space-y-2">
-                                        <Label htmlFor="name">Full Name</Label>
-                                        <Input
-                                            id="name"
-                                            placeholder="John Doe"
-                                            className="bg-slate-950 border-slate-800 text-white"
-                                            value={formData.name}
-                                            onChange={e => setFormData({ ...formData, name: e.target.value })}
-                                            required
-                                        />
-                                    </div>
-                                    <div className="space-y-2">
-                                        <Label htmlFor="password">Password {editingUser && "(leave blank to keep current)"}</Label>
-                                        <Input
-                                            id="password"
-                                            type="password"
-                                            placeholder="••••••••"
-                                            className="bg-slate-950 border-slate-800 text-white"
-                                            value={formData.password}
-                                            onChange={e => setFormData({ ...formData, password: e.target.value })}
-                                            required={!editingUser}
-                                        />
-                                    </div>
-                                </>
-                            )}
+                            <div className="space-y-2">
+                                <Label htmlFor="password">Password {editingUser && "(leave blank to keep current)"}</Label>
+                                <Input
+                                    id="password"
+                                    type="password"
+                                    placeholder="********"
+                                    className="bg-slate-950 border-slate-800 text-white"
+                                    value={formData.password}
+                                    onChange={e => setFormData({ ...formData, password: e.target.value })}
+                                    required={!editingUser}
+                                />
+                            </div>
                             <div className="space-y-2">
                                 <Label htmlFor="role">Role</Label>
                                 <Select value={formData.role} onValueChange={(value) => setFormData({ ...formData, role: value })}>
@@ -187,8 +181,8 @@ export default function UsersPage() {
                             </div>
                             <DialogFooter>
                                 <Button type="submit" disabled={isSubmitting} className="w-full bg-primary text-white">
-                                    {isSubmitting ? <Loader2 className="animate-spin mr-2" /> : inviteMode ? <Send size={18} className="mr-2" /> : <UsersIcon size={18} className="mr-2" />}
-                                    {editingUser ? "Update User" : inviteMode ? "Send Invitation" : "Create User"}
+                                    {isSubmitting ? <Loader2 className="animate-spin mr-2" /> : <UsersIcon size={18} className="mr-2" />}
+                                    {editingUser ? "Update User" : "Create Admin"}
                                 </Button>
                             </DialogFooter>
                         </form>
@@ -211,30 +205,44 @@ export default function UsersPage() {
                     users.map((user) => (
                         <Card key={user._id} className="bg-slate-900/50 border-slate-800 p-6 flex items-center justify-between group hover:border-primary/30 transition-all duration-300">
                             <div className="flex items-center gap-4">
-                                <div className={`h-12 w-12 rounded-xl flex items-center justify-center border ${user.role === 'superadmin'
-                                    ? 'bg-primary/10 border-primary/20 text-primary'
-                                    : 'bg-slate-950 border-slate-800 text-slate-400'
+                                <div className={`h-12 w-12 rounded-xl flex items-center justify-center border ${user.role === "superadmin"
+                                    ? "bg-primary/10 border-primary/20 text-primary"
+                                    : "bg-slate-950 border-slate-800 text-slate-400"
                                     } group-hover:scale-110 transition-transform`}>
-                                    {user.role === 'superadmin' ? <Shield size={24} /> : <User size={24} />}
+                                    {user.role === "superadmin" ? <Shield size={24} /> : <User size={24} />}
                                 </div>
                                 <div>
                                     <div className="flex items-center gap-2 mb-1">
                                         <h3 className="text-lg font-semibold text-white">{user.name}</h3>
-                                        <span className={`text-xs font-medium px-2 py-0.5 rounded ${user.role === 'superadmin'
-                                            ? 'bg-primary/20 text-primary'
-                                            : 'bg-slate-800 text-slate-400'
+                                        <span className={`text-xs font-medium px-2 py-0.5 rounded ${user.role === "superadmin"
+                                            ? "bg-primary/20 text-primary"
+                                            : "bg-slate-800 text-slate-400"
                                             }`}>
-                                            {user.role === 'superadmin' ? 'Super Admin' : 'Admin'}
+                                            {user.role === "superadmin" ? "Super Admin" : "Admin"}
+                                        </span>
+                                        <span className={`text-xs font-medium px-2 py-0.5 rounded ${user.isActive
+                                            ? "bg-emerald-500/20 text-emerald-300"
+                                            : "bg-red-500/20 text-red-300"
+                                            }`}>
+                                            {user.isActive ? "Active" : "Blocked"}
                                         </span>
                                     </div>
                                     <p className="text-sm text-slate-400">{user.email}</p>
                                     <p className="text-xs text-slate-500 mt-1">
-                                        Created: {new Date(user.createdAt).toLocaleDateString()}
+                                        Created: {user.createdAt ? new Date(user.createdAt).toLocaleDateString() : "-"}
                                     </p>
                                 </div>
                             </div>
 
                             <div className="flex gap-2">
+                                <Button
+                                    size="sm"
+                                    variant="ghost"
+                                    className={user.isActive ? "text-slate-400 hover:text-amber-400 hover:bg-amber-500/10" : "text-slate-400 hover:text-emerald-400 hover:bg-emerald-500/10"}
+                                    onClick={() => toggleAccess(user, !user.isActive)}
+                                >
+                                    {user.isActive ? <UserX size={16} /> : <UserCheck size={16} />}
+                                </Button>
                                 <Button
                                     size="sm"
                                     variant="ghost"
@@ -256,6 +264,7 @@ export default function UsersPage() {
                     ))
                 )}
             </div>
-        </AdminLayout >
+        </AdminLayout>
     );
 }
+
