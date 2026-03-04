@@ -942,11 +942,7 @@ export default function ContentPage() {
                                                     </div>
                                                 ))}
                                             </>
-                                        ) : (
-                                            <div className="rounded border border-dashed border-slate-800 p-4 text-xs text-slate-500">
-                                                Images are not used on this page. Only the MyNxt product image can be edited.
-                                            </div>
-                                        )}
+                                        ) : null}
                                         <Label className="text-slate-300 mt-2">Order</Label>
                                         <Input
                                             type="number"
