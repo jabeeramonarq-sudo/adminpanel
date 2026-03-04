@@ -6,7 +6,9 @@ import { AdminLayout } from "@/components/admin/AdminLayout";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Mail, Search, Trash2, Send, CheckCircle } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Mail, Search, Trash2, Send, CheckCircle, Loader2 } from "lucide-react";
 
 interface Message {
     _id: string;
@@ -28,6 +30,10 @@ export default function InboxPage() {
     const [searchTerm, setSearchTerm] = useState("");
     const [messages, setMessages] = useState<Message[]>([]);
     const [isLoading, setIsLoading] = useState(true);
+    const [replyOpen, setReplyOpen] = useState(false);
+    const [replyTarget, setReplyTarget] = useState<Message | null>(null);
+    const [replyMessage, setReplyMessage] = useState("");
+    const [isReplying, setIsReplying] = useState(false);
 
     const fetchMessages = async () => {
         try {
@@ -62,6 +68,33 @@ export default function InboxPage() {
             toast.success("Message deleted");
         } catch (error) {
             toast.error("Failed to delete message");
+        }
+    };
+
+    const openReply = (msg: Message) => {
+        setReplyTarget(msg);
+        setReplyMessage("");
+        setReplyOpen(true);
+    };
+
+    const handleSendReply = async () => {
+        if (!replyTarget) return;
+        if (!replyMessage.trim()) {
+            toast.error("Reply message is required");
+            return;
+        }
+        setIsReplying(true);
+        try {
+            await api.post(`/inbox/${replyTarget._id}/reply`, { replyMessage: replyMessage.trim() });
+            toast.success("Reply sent");
+            setMessages(messages.map(m => m._id === replyTarget._id ? { ...m, isReplied: true } : m));
+            setReplyOpen(false);
+            setReplyMessage("");
+            setReplyTarget(null);
+        } catch (error: any) {
+            toast.error(error.response?.data?.error || "Failed to send reply");
+        } finally {
+            setIsReplying(false);
         }
     };
 
@@ -116,7 +149,7 @@ export default function InboxPage() {
                                     variant="ghost"
                                     size="sm"
                                     className="text-slate-400 hover:text-white hover:bg-slate-800"
-                                    onClick={() => window.location.href = `mailto:${msg.email}?subject=Re: ${msg.subject}`}
+                                    onClick={() => openReply(msg)}
                                 >
                                     <Send size={16} className="mr-2" /> Reply
                                 </Button>
@@ -150,6 +183,39 @@ export default function InboxPage() {
                     </div>
                 )}
             </div>
+            <Dialog open={replyOpen} onOpenChange={setReplyOpen}>
+                <DialogContent className="bg-slate-900 border-slate-800 text-white sm:max-w-lg">
+                    <DialogHeader>
+                        <DialogTitle>Reply to {replyTarget?.name || "Message"}</DialogTitle>
+                        <DialogDescription className="text-slate-400">
+                            {replyTarget?.email ? `Sending to ${replyTarget.email}` : "Recipient email not available."}
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="space-y-3">
+                        <div className="text-xs text-slate-500">
+                            Subject: Re: {replyTarget?.subject || "Your inquiry"}
+                        </div>
+                        <Textarea
+                            className="bg-slate-950 border-slate-800 text-white"
+                            placeholder="Type your reply..."
+                            rows={6}
+                            value={replyMessage}
+                            onChange={(e) => setReplyMessage(e.target.value)}
+                        />
+                    </div>
+                    <DialogFooter>
+                        <Button
+                            type="button"
+                            onClick={handleSendReply}
+                            disabled={isReplying || !replyTarget}
+                            className="bg-primary text-white"
+                        >
+                            {isReplying ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Send className="mr-2 h-4 w-4" />}
+                            Send Reply
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </AdminLayout>
     );
 }
