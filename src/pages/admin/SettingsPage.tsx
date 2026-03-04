@@ -44,6 +44,7 @@ interface Settings {
     featureFlags?: {
         emailCaptureEnabled?: boolean;
         showPhoneNumber?: boolean;
+        seoEnabled?: boolean;
     };
 }
 
@@ -55,7 +56,7 @@ export default function SettingsPage() {
         footer: { badgeText: "", copyrightText: "" },
         seo: { siteTitle: "", defaultDescription: "", ogImage: "" },
         socialMedia: [],
-        featureFlags: { emailCaptureEnabled: true, showPhoneNumber: false }
+        featureFlags: { emailCaptureEnabled: true, showPhoneNumber: false, seoEnabled: true }
     });
     const [isLoading, setIsLoading] = useState(true);
     const [isSaving, setIsSaving] = useState(false);
@@ -81,7 +82,8 @@ export default function SettingsPage() {
                     },
                     featureFlags: {
                         emailCaptureEnabled: response.data?.featureFlags?.emailCaptureEnabled ?? true,
-                        showPhoneNumber: response.data?.featureFlags?.showPhoneNumber ?? false
+                        showPhoneNumber: response.data?.featureFlags?.showPhoneNumber ?? false,
+                        seoEnabled: response.data?.featureFlags?.seoEnabled ?? true
                     }
                 });
             } catch (error) {
@@ -411,6 +413,19 @@ export default function SettingsPage() {
                                     />
                                     <p className="text-[10px] text-slate-500">Paste the iframe src URL from Google Maps Share &gt; Embed a map</p>
                                 </div>
+                                <label className="flex items-center gap-2 text-slate-200 text-sm">
+                                    <input
+                                        type="checkbox"
+                                        checked={settings.featureFlags?.seoEnabled ?? true}
+                                        onChange={(e) =>
+                                            setSettings({
+                                                ...settings,
+                                                featureFlags: { ...settings.featureFlags, seoEnabled: e.target.checked }
+                                            })
+                                        }
+                                    />
+                                    Enable SEO metadata
+                                </label>
                                 <div className="space-y-2 pt-4 border-t border-slate-800">
                                     <Label className="text-slate-300">Default SEO Title</Label>
                                     <Input
