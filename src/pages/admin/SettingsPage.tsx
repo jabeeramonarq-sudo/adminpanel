@@ -36,6 +36,10 @@ interface Settings {
         copyrightText: string;
     };
     socialMedia: SocialMedia[];
+    featureFlags?: {
+        emailCaptureEnabled?: boolean;
+        showPhoneNumber?: boolean;
+    };
 }
 
 export default function SettingsPage() {
@@ -44,7 +48,8 @@ export default function SettingsPage() {
         contactInfo: { address: "", email: "", phone: "", mapsUrl: "" },
         contactForm: { recipientEmail: "" },
         footer: { badgeText: "", copyrightText: "" },
-        socialMedia: []
+        socialMedia: [],
+        featureFlags: { emailCaptureEnabled: true, showPhoneNumber: false }
     });
     const [isLoading, setIsLoading] = useState(true);
     const [isSaving, setIsSaving] = useState(false);
@@ -63,6 +68,10 @@ export default function SettingsPage() {
                         badgeText: response.data?.footer?.badgeText || "",
                         copyrightText: response.data?.footer?.copyrightText || ""
                     },
+                    featureFlags: {
+                        emailCaptureEnabled: response.data?.featureFlags?.emailCaptureEnabled ?? true,
+                        showPhoneNumber: response.data?.featureFlags?.showPhoneNumber ?? false
+                    }
                 });
             } catch (error) {
                 toast.error("Failed to load settings");
@@ -297,6 +306,19 @@ export default function SettingsPage() {
                                             onChange={e => setSettings({ ...settings, contactInfo: { ...settings.contactInfo, phone: e.target.value } })}
                                         />
                                     </div>
+                                    <label className="flex items-center gap-2 text-slate-200 text-sm">
+                                        <input
+                                            type="checkbox"
+                                            checked={settings.featureFlags?.showPhoneNumber ?? false}
+                                            onChange={(e) =>
+                                                setSettings({
+                                                    ...settings,
+                                                    featureFlags: { ...settings.featureFlags, showPhoneNumber: e.target.checked }
+                                                })
+                                            }
+                                        />
+                                        Show phone number on frontend
+                                    </label>
                                 </div>
                                 <div className="space-y-2">
                                     <Label className="text-slate-300">Registered Address</Label>
