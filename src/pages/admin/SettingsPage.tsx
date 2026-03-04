@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Building, Share2, Globe, ImageIcon, Save, Sliders } from "lucide-react";
+import { Building, Share2, Globe, ImageIcon, Save } from "lucide-react";
 
 interface SocialMedia {
     platform: string;
@@ -31,9 +31,6 @@ interface Settings {
     contactForm: {
         recipientEmail: string;
     };
-    featureFlags: {
-        emailCaptureEnabled: boolean;
-    };
     footer: {
         badgeText: string;
         copyrightText: string;
@@ -46,7 +43,6 @@ export default function SettingsPage() {
         logos: { main: "", footer: "", favicon: "" },
         contactInfo: { address: "", email: "", phone: "", mapsUrl: "" },
         contactForm: { recipientEmail: "" },
-        featureFlags: { emailCaptureEnabled: true },
         footer: { badgeText: "", copyrightText: "" },
         socialMedia: []
     });
@@ -61,9 +57,6 @@ export default function SettingsPage() {
                     ...response.data,
                     contactForm: {
                         recipientEmail: response.data?.contactForm?.recipientEmail || ""
-                    },
-                    featureFlags: {
-                        emailCaptureEnabled: response.data?.featureFlags?.emailCaptureEnabled ?? true
                     },
                     footer: {
                         badgeText: response.data?.footer?.badgeText || "",
@@ -125,9 +118,6 @@ export default function SettingsPage() {
                     </TabsTrigger>
                     <TabsTrigger value="contact-forms" className="data-[state=active]:bg-primary data-[state=active]:text-white">
                         <Globe size={16} className="mr-2" /> Contact Forms
-                    </TabsTrigger>
-                    <TabsTrigger value="experience" className="data-[state=active]:bg-primary data-[state=active]:text-white">
-                        <Sliders size={16} className="mr-2" /> Experience
                     </TabsTrigger>
                     <TabsTrigger value="integrations" className="data-[state=active]:bg-primary data-[state=active]:text-white">
                         <Globe size={16} className="mr-2" /> Maps & SEO
@@ -304,34 +294,6 @@ export default function SettingsPage() {
                                 <p className="text-[11px] text-slate-500">
                                     Add one or more emails separated by comma. All contact form messages go to this list.
                                 </p>
-                            </div>
-                        </Card>
-                    </TabsContent>
-
-                    <TabsContent value="experience" className="space-y-6">
-                        <Card className="bg-slate-900/50 border-slate-800 p-8">
-                            <div className="space-y-4">
-                                <div className="flex items-center justify-between gap-4">
-                                    <div>
-                                        <Label className="text-slate-300">Email Capture Banner</Label>
-                                        <p className="text-[11px] text-slate-500">
-                                            Show the name + email popup banner on the public site.
-                                        </p>
-                                    </div>
-                                    <label className="flex items-center gap-2 text-slate-200 text-sm">
-                                        <input
-                                            type="checkbox"
-                                            checked={settings.featureFlags.emailCaptureEnabled}
-                                            onChange={(e) =>
-                                                setSettings({
-                                                    ...settings,
-                                                    featureFlags: { ...settings.featureFlags, emailCaptureEnabled: e.target.checked }
-                                                })
-                                            }
-                                        />
-                                        Enabled
-                                    </label>
-                                </div>
                             </div>
                         </Card>
                     </TabsContent>

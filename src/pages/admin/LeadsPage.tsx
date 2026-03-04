@@ -17,6 +17,10 @@ interface Lead {
   createdAt: string;
 }
 
+interface FeatureFlags {
+  emailCaptureEnabled: boolean;
+}
+
 const withEllipsis = (value: string, maxChars: number) => {
   if (!value) return "";
   return value.length > maxChars ? `${value.slice(0, maxChars).trimEnd()}...` : value;
@@ -26,6 +30,8 @@ export default function LeadsPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [leads, setLeads] = useState<Lead[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [flags, setFlags] = useState<FeatureFlags>({ emailCaptureEnabled: true });
+  const [isSavingFlags, setIsSavingFlags] = useState(false);
 
   const fetchLeads = async () => {
     try {
@@ -40,6 +46,20 @@ export default function LeadsPage() {
 
   useEffect(() => {
     fetchLeads();
+  }, []);
+
+  useEffect(() => {
+    const fetchFlags = async () => {
+      try {
+        const response = await api.get("/settings");
+        setFlags({
+          emailCaptureEnabled: response.data?.featureFlags?.emailCaptureEnabled ?? true
+        });
+      } catch (_error) {
+        toast.error("Failed to load popup setting");
+      }
+    };
+    fetchFlags();
   }, []);
 
   const handleDelete = async (id: string) => {
@@ -59,6 +79,19 @@ export default function LeadsPage() {
     (lead.sourceUrl || "").toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  const handleToggle = async (nextValue: boolean) => {
+    setFlags({ emailCaptureEnabled: nextValue });
+    setIsSavingFlags(true);
+    try {
+      await api.put("/settings", { featureFlags: { emailCaptureEnabled: nextValue } });
+      toast.success("Popup setting updated");
+    } catch (_error) {
+      toast.error("Failed to update popup setting");
+    } finally {
+      setIsSavingFlags(false);
+    }
+  };
+
   return (
     <AdminLayout>
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-10">
@@ -77,6 +110,24 @@ export default function LeadsPage() {
           />
         </div>
       </div>
+
+      <Card className="bg-slate-900/50 border-slate-800 p-6 mb-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <h3 className="text-white font-semibold">Email popup</h3>
+            <p className="text-xs text-slate-500">Toggle the name + email popup on the public site.</p>
+          </div>
+          <label className="flex items-center gap-2 text-slate-200 text-sm">
+            <input
+              type="checkbox"
+              checked={flags.emailCaptureEnabled}
+              disabled={isSavingFlags}
+              onChange={(e) => handleToggle(e.target.checked)}
+            />
+            Enabled
+          </label>
+        </div>
+      </Card>
 
       <div className="space-y-4">
         {isLoading ? (
