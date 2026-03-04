@@ -61,6 +61,7 @@ export default function SettingsPage() {
     const [isLoading, setIsLoading] = useState(true);
     const [isSaving, setIsSaving] = useState(false);
     const [uploadingLogo, setUploadingLogo] = useState<"" | "main" | "footer" | "favicon">("");
+    const [uploadingSeoImage, setUploadingSeoImage] = useState(false);
 
     useEffect(() => {
         const fetchSettings = async () => {
@@ -151,6 +152,39 @@ export default function SettingsPage() {
             toast.error(error.message || "Logo upload failed");
         } finally {
             setUploadingLogo("");
+        }
+    };
+
+    const uploadSeoImage = async (file?: File) => {
+        if (!file) return;
+        setUploadingSeoImage(true);
+        try {
+            const formData = new FormData();
+            formData.append("image", file);
+            const token = localStorage.getItem("adminToken");
+            const baseURL = api.defaults.baseURL || "";
+            const response = await fetch(`${baseURL}/upload/image`, {
+                method: "POST",
+                headers: token ? { Authorization: `Bearer ${token}` } : {},
+                body: formData,
+            });
+            const data = await response.json();
+            if (!response.ok) {
+                throw new Error(data?.error || "SEO image upload failed");
+            }
+            const url = data?.url;
+            if (!url) {
+                throw new Error("Upload succeeded but no URL returned");
+            }
+            setSettings((prev) => ({
+                ...prev,
+                seo: { ...prev.seo, ogImage: url }
+            }));
+            toast.success("SEO image uploaded");
+        } catch (error: any) {
+            toast.error(error.message || "SEO image upload failed");
+        } finally {
+            setUploadingSeoImage(false);
         }
     };
 
@@ -468,6 +502,24 @@ export default function SettingsPage() {
                                         }
                                     />
                                     <p className="text-[10px] text-slate-500">Shown when the site is shared on social media.</p>
+                                    <label className="inline-flex cursor-pointer items-center rounded-md border border-slate-700 px-3 py-2 text-xs text-slate-200 hover:bg-slate-800">
+                                        {uploadingSeoImage ? (
+                                            <Loader2 size={14} className="mr-1 animate-spin" />
+                                        ) : (
+                                            <Upload size={14} className="mr-1" />
+                                        )}
+                                        Upload from PC
+                                        <input
+                                            type="file"
+                                            accept="image/*"
+                                            className="hidden"
+                                            onChange={(e) => {
+                                                const file = e.target.files?.[0];
+                                                void uploadSeoImage(file);
+                                                e.currentTarget.value = "";
+                                            }}
+                                        />
+                                    </label>
                                 </div>
                             </div>
                         </Card>
