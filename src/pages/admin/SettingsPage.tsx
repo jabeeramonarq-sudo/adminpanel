@@ -62,6 +62,9 @@ export default function SettingsPage() {
     const [isSaving, setIsSaving] = useState(false);
     const [uploadingLogo, setUploadingLogo] = useState<"" | "main" | "footer" | "favicon">("");
     const [uploadingSeoImage, setUploadingSeoImage] = useState(false);
+    const defaultMainLogo = "https://www.amonarq.com/logo.png";
+    const defaultFooterLogo = "https://www.amonarq.com/mynxt-logo.png";
+    const defaultFavicon = "https://www.amonarq.com/favicon.ico";
 
     useEffect(() => {
         const fetchSettings = async () => {
@@ -224,12 +227,15 @@ export default function SettingsPage() {
                                 <h3 className="text-lg font-semibold text-white mb-4">Main Logo</h3>
                                 <div className="space-y-4">
                                     <div className="h-32 rounded-xl bg-slate-950 border border-slate-800 flex items-center justify-center overflow-hidden">
-                                        {settings.logos.main ? (
-                                            <img src={settings.logos.main} className="h-16 w-auto" alt="Logo preview" />
-                                        ) : (
-                                            <span className="text-slate-600">No logo uploaded</span>
-                                        )}
+                                        <img
+                                            src={(settings.logos.main || "").trim() || defaultMainLogo}
+                                            className="h-16 w-auto"
+                                            alt="Logo preview"
+                                        />
                                     </div>
+                                    {!settings.logos.main && (
+                                        <p className="text-[11px] text-slate-500">Showing default site logo.</p>
+                                    )}
                                     <Input
                                         placeholder="Logo URL (or use upload tool)"
                                         className="bg-slate-950 border-slate-800 text-white"
@@ -260,12 +266,15 @@ export default function SettingsPage() {
                                 <h3 className="text-lg font-semibold text-white mb-4">Footer Logo</h3>
                                 <div className="space-y-4">
                                     <div className="h-32 rounded-xl bg-slate-950 border border-slate-800 flex items-center justify-center overflow-hidden">
-                                        {settings.logos.footer ? (
-                                            <img src={settings.logos.footer} className="h-16 w-auto" alt="Footer logo preview" />
-                                        ) : (
-                                            <span className="text-slate-600">No footer logo</span>
-                                        )}
+                                        <img
+                                            src={(settings.logos.footer || "").trim() || defaultFooterLogo}
+                                            className="h-16 w-auto"
+                                            alt="Footer logo preview"
+                                        />
                                     </div>
+                                    {!settings.logos.footer && (
+                                        <p className="text-[11px] text-slate-500">Showing default footer logo.</p>
+                                    )}
                                     <Input
                                         placeholder="Footer logo URL (or use upload tool)"
                                         className="bg-slate-950 border-slate-800 text-white"
@@ -296,12 +305,15 @@ export default function SettingsPage() {
                                 <h3 className="text-lg font-semibold text-white mb-4">Favicon</h3>
                                 <div className="space-y-4">
                                     <div className="h-32 rounded-xl bg-slate-950 border border-slate-800 flex items-center justify-center">
-                                        {settings.logos.favicon ? (
-                                            <img src={settings.logos.favicon} className="h-8 w-8" alt="Favicon preview" />
-                                        ) : (
-                                            <span className="text-slate-600">No favicon</span>
-                                        )}
+                                        <img
+                                            src={(settings.logos.favicon || "").trim() || defaultFavicon}
+                                            className="h-8 w-8"
+                                            alt="Favicon preview"
+                                        />
                                     </div>
+                                    {!settings.logos.favicon && (
+                                        <p className="text-[11px] text-slate-500">Showing default favicon.</p>
+                                    )}
                                     <Input
                                         placeholder="Favicon URL"
                                         className="bg-slate-950 border-slate-800 text-white"
