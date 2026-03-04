@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import api from "@/lib/api";
-import { Loader2, Plus, Trash2 } from "lucide-react";
+import { Loader2, Plus, Trash2, Upload } from "lucide-react";
 import { AdminLayout } from "@/components/admin/AdminLayout";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -48,6 +48,7 @@ export default function SettingsPage() {
     });
     const [isLoading, setIsLoading] = useState(true);
     const [isSaving, setIsSaving] = useState(false);
+    const [uploadingLogo, setUploadingLogo] = useState<"" | "main" | "footer" | "favicon">("");
 
     useEffect(() => {
         const fetchSettings = async () => {
@@ -98,6 +99,39 @@ export default function SettingsPage() {
         setSettings({ ...settings, socialMedia: updated });
     };
 
+    const uploadLogo = async (type: "main" | "footer" | "favicon", file?: File) => {
+        if (!file) return;
+        setUploadingLogo(type);
+        try {
+            const formData = new FormData();
+            formData.append("image", file);
+            const token = localStorage.getItem("adminToken");
+            const baseURL = api.defaults.baseURL || "";
+            const response = await fetch(`${baseURL}/upload/image`, {
+                method: "POST",
+                headers: token ? { Authorization: `Bearer ${token}` } : {},
+                body: formData,
+            });
+            const data = await response.json();
+            if (!response.ok) {
+                throw new Error(data?.error || "Logo upload failed");
+            }
+            const url = data?.url;
+            if (!url) {
+                throw new Error("Upload succeeded but no URL returned");
+            }
+            setSettings((prev) => ({
+                ...prev,
+                logos: { ...prev.logos, [type]: url }
+            }));
+            toast.success("Logo uploaded");
+        } catch (error: any) {
+            toast.error(error.message || "Logo upload failed");
+        } finally {
+            setUploadingLogo("");
+        }
+    };
+
     return (
         <AdminLayout>
             <div className="mb-10">
@@ -146,6 +180,60 @@ export default function SettingsPage() {
                                         value={settings.logos.main}
                                         onChange={e => setSettings({ ...settings, logos: { ...settings.logos, main: e.target.value } })}
                                     />
+                                    <label className="inline-flex cursor-pointer items-center rounded-md border border-slate-700 px-3 py-2 text-xs text-slate-200 hover:bg-slate-800">
+                                        {uploadingLogo === "main" ? (
+                                            <Loader2 size={14} className="mr-1 animate-spin" />
+                                        ) : (
+                                            <Upload size={14} className="mr-1" />
+                                        )}
+                                        Upload from PC
+                                        <input
+                                            type="file"
+                                            accept="image/*"
+                                            className="hidden"
+                                            onChange={(e) => {
+                                                const file = e.target.files?.[0];
+                                                void uploadLogo("main", file);
+                                                e.currentTarget.value = "";
+                                            }}
+                                        />
+                                    </label>
+                                </div>
+                            </Card>
+                            <Card className="bg-slate-900/50 border-slate-800 p-6">
+                                <h3 className="text-lg font-semibold text-white mb-4">Footer Logo</h3>
+                                <div className="space-y-4">
+                                    <div className="h-32 rounded-xl bg-slate-950 border border-slate-800 flex items-center justify-center overflow-hidden">
+                                        {settings.logos.footer ? (
+                                            <img src={settings.logos.footer} className="h-16 w-auto" alt="Footer logo preview" />
+                                        ) : (
+                                            <span className="text-slate-600">No footer logo</span>
+                                        )}
+                                    </div>
+                                    <Input
+                                        placeholder="Footer logo URL (or use upload tool)"
+                                        className="bg-slate-950 border-slate-800 text-white"
+                                        value={settings.logos.footer}
+                                        onChange={e => setSettings({ ...settings, logos: { ...settings.logos, footer: e.target.value } })}
+                                    />
+                                    <label className="inline-flex cursor-pointer items-center rounded-md border border-slate-700 px-3 py-2 text-xs text-slate-200 hover:bg-slate-800">
+                                        {uploadingLogo === "footer" ? (
+                                            <Loader2 size={14} className="mr-1 animate-spin" />
+                                        ) : (
+                                            <Upload size={14} className="mr-1" />
+                                        )}
+                                        Upload from PC
+                                        <input
+                                            type="file"
+                                            accept="image/*"
+                                            className="hidden"
+                                            onChange={(e) => {
+                                                const file = e.target.files?.[0];
+                                                void uploadLogo("footer", file);
+                                                e.currentTarget.value = "";
+                                            }}
+                                        />
+                                    </label>
                                 </div>
                             </Card>
                             <Card className="bg-slate-900/50 border-slate-800 p-6">
@@ -164,6 +252,24 @@ export default function SettingsPage() {
                                         value={settings.logos.favicon}
                                         onChange={e => setSettings({ ...settings, logos: { ...settings.logos, favicon: e.target.value } })}
                                     />
+                                    <label className="inline-flex cursor-pointer items-center rounded-md border border-slate-700 px-3 py-2 text-xs text-slate-200 hover:bg-slate-800">
+                                        {uploadingLogo === "favicon" ? (
+                                            <Loader2 size={14} className="mr-1 animate-spin" />
+                                        ) : (
+                                            <Upload size={14} className="mr-1" />
+                                        )}
+                                        Upload from PC
+                                        <input
+                                            type="file"
+                                            accept="image/*"
+                                            className="hidden"
+                                            onChange={(e) => {
+                                                const file = e.target.files?.[0];
+                                                void uploadLogo("favicon", file);
+                                                e.currentTarget.value = "";
+                                            }}
+                                        />
+                                    </label>
                                 </div>
                             </Card>
                         </div>
