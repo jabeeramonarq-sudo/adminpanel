@@ -1,4 +1,4 @@
-
+﻿
 import { Link, useLocation } from "react-router-dom";
 import {
     LayoutDashboard,
@@ -6,6 +6,7 @@ import {
     Settings,
     FileText,
     Users,
+    Mail,
     LogOut,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -16,6 +17,7 @@ const navItems = [
     { icon: Settings, label: "Settings", path: "/admin/settings" },
     { icon: FileText, label: "Content", path: "/admin/content" },
     { icon: Users, label: "Users", path: "/admin/users" },
+    { icon: Mail, label: "Leads", path: "/admin/leads" },
 ];
 
 interface AdminNavContentProps {
@@ -69,3 +71,4 @@ export function AdminNavContent({ isCollapsed = false, onLinkClick }: AdminNavCo
         </div>
     );
 }
+

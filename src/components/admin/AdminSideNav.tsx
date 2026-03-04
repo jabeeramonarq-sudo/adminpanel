@@ -1,4 +1,4 @@
-import { Link, useLocation } from "react-router-dom";
+﻿import { Link, useLocation } from "react-router-dom";
 import {
     LayoutDashboard,
     Inbox,
@@ -19,6 +19,7 @@ const navItems = [
     { icon: Settings, label: "Settings", path: "/admin/settings" },
     { icon: FileText, label: "Content", path: "/admin/content" },
     { icon: Users, label: "Users", path: "/admin/users" },
+    { icon: Mail, label: "Leads", path: "/admin/leads" },
 ];
 
 export function AdminSideNav() {
@@ -82,3 +83,4 @@ export function AdminSideNav() {
         </aside>
     );
 }
+

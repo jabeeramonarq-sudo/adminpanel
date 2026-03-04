@@ -1,4 +1,4 @@
-import { Toaster } from "@/components/ui/toaster";
+﻿import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -10,6 +10,7 @@ import AdminDashboard from "./pages/admin/Dashboard";
 import InboxPage from "./pages/admin/InboxPage";
 import SettingsPage from "./pages/admin/SettingsPage";
 import UsersPage from "./pages/admin/UsersPage";
+import LeadsPage from "./pages/admin/LeadsPage";
 import CompleteInvitationPage from "./pages/CompleteInvitationPage";
 import SetupPage from "./pages/admin/SetupPage";
 import ContentPage from "./pages/admin/ContentPage";
@@ -32,7 +33,7 @@ const App = () => (
           <Route path="/setup" element={<SetupPage />} />
           <Route path="/admin/inbox" element={<InboxPage />} />
           <Route path="/admin/settings" element={<SettingsPage />} />
-          <Route path="/admin/users" element={<UsersPage />} />
+          <Route path="/admin/users" element={<UsersPage />} />\n          <Route path="/admin/leads" element={<LeadsPage />} />
           <Route path="/admin/content" element={<ContentPage />} />
           <Route path="*" element={<Navigate to="/admin/login" replace />} />
         </Routes>
@@ -42,3 +43,4 @@ const App = () => (
 );
 
 export default App;
+
