@@ -35,6 +35,11 @@ interface Settings {
         badgeText: string;
         copyrightText: string;
     };
+    seo?: {
+        siteTitle?: string;
+        defaultDescription?: string;
+        ogImage?: string;
+    };
     socialMedia: SocialMedia[];
     featureFlags?: {
         emailCaptureEnabled?: boolean;
@@ -48,6 +53,7 @@ export default function SettingsPage() {
         contactInfo: { address: "", email: "", phone: "", mapsUrl: "" },
         contactForm: { recipientEmail: "" },
         footer: { badgeText: "", copyrightText: "" },
+        seo: { siteTitle: "", defaultDescription: "", ogImage: "" },
         socialMedia: [],
         featureFlags: { emailCaptureEnabled: true, showPhoneNumber: false }
     });
@@ -67,6 +73,11 @@ export default function SettingsPage() {
                     footer: {
                         badgeText: response.data?.footer?.badgeText || "",
                         copyrightText: response.data?.footer?.copyrightText || ""
+                    },
+                    seo: {
+                        siteTitle: response.data?.seo?.siteTitle || "",
+                        defaultDescription: response.data?.seo?.defaultDescription || "",
+                        ogImage: response.data?.seo?.ogImage || ""
                     },
                     featureFlags: {
                         emailCaptureEnabled: response.data?.featureFlags?.emailCaptureEnabled ?? true,
@@ -399,6 +410,49 @@ export default function SettingsPage() {
                                         onChange={e => setSettings({ ...settings, contactInfo: { ...settings.contactInfo, mapsUrl: e.target.value } })}
                                     />
                                     <p className="text-[10px] text-slate-500">Paste the iframe src URL from Google Maps Share &gt; Embed a map</p>
+                                </div>
+                                <div className="space-y-2 pt-4 border-t border-slate-800">
+                                    <Label className="text-slate-300">Default SEO Title</Label>
+                                    <Input
+                                        placeholder="Amonarq - Designing Systems for Continuity"
+                                        className="bg-slate-950 border-slate-800 text-white"
+                                        value={settings.seo?.siteTitle || ""}
+                                        onChange={e =>
+                                            setSettings({
+                                                ...settings,
+                                                seo: { ...settings.seo, siteTitle: e.target.value }
+                                            })
+                                        }
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label className="text-slate-300">Default SEO Description</Label>
+                                    <textarea
+                                        className="w-full h-24 rounded-lg bg-slate-950 border border-slate-800 p-3 text-white focus:ring-1 focus:ring-primary outline-none"
+                                        placeholder="Amonarq builds digital products focused on reducing chaos, protecting trust, and enabling uninterrupted human flow."
+                                        value={settings.seo?.defaultDescription || ""}
+                                        onChange={e =>
+                                            setSettings({
+                                                ...settings,
+                                                seo: { ...settings.seo, defaultDescription: e.target.value }
+                                            })
+                                        }
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label className="text-slate-300">OG Image URL</Label>
+                                    <Input
+                                        placeholder="/og-image.png"
+                                        className="bg-slate-950 border-slate-800 text-white"
+                                        value={settings.seo?.ogImage || ""}
+                                        onChange={e =>
+                                            setSettings({
+                                                ...settings,
+                                                seo: { ...settings.seo, ogImage: e.target.value }
+                                            })
+                                        }
+                                    />
+                                    <p className="text-[10px] text-slate-500">Shown when the site is shared on social media.</p>
                                 </div>
                             </div>
                         </Card>
