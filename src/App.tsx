@@ -27,13 +27,7 @@ const App = () => (
       <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
         <ScrollToTopOnNavigation />
         <ScrollToTop />
-        <Suspense
-          fallback={
-            <div className="min-h-screen bg-slate-950 text-slate-200 flex items-center justify-center text-sm">
-              Loading...
-            </div>
-          }
-        >
+        <Suspense fallback={null}>
           <Routes>
             <Route path="/invite/:token" element={<CompleteInvitationPage />} />
             <Route path="/" element={<Navigate to="/admin/login" replace />} />
