@@ -863,93 +863,90 @@ export default function ContentPage() {
                                         />
                                     </div>
                                     <div className="space-y-2 md:col-span-2">
-                                        <div className="flex items-center justify-between">
-                                            <Label className="text-slate-300">Images</Label>
-                                            <Button type="button" size="sm" variant="outline" className="border-slate-700 text-slate-200" onClick={() => addImageField(idx)}>
-                                                <Plus size={14} className="mr-1" /> Add Image
-                                            </Button>
-                                        </div>
-                                        {(section.images && section.images.length > 0 ? section.images : (section.image ? [section.image] : [""])).map((img, imageIndex) => (
-                                            <div key={`${section.sectionId}-img-${imageIndex}`} className="space-y-2 rounded border border-slate-800 p-3 bg-slate-950/60">
-                                                <div className="flex items-center gap-3">
-                                                    <div className="h-16 w-16 rounded border border-slate-700 bg-slate-900 flex items-center justify-center overflow-hidden shrink-0">
+                                        {section.sectionId === "product-not-vault" ? (
+                                            <>
+                                                <div className="flex items-center justify-between">
+                                                    <Label className="text-slate-300">Image</Label>
+                                                </div>
+                                                {(section.images && section.images.length > 0 ? section.images : (section.image ? [section.image] : [""])).slice(0, 1).map((img, imageIndex) => (
+                                                    <div key={`${section.sectionId}-img-${imageIndex}`} className="space-y-2 rounded border border-slate-800 p-3 bg-slate-950/60">
+                                                        <div className="flex items-center gap-3">
+                                                            <div className="h-16 w-16 rounded border border-slate-700 bg-slate-900 flex items-center justify-center overflow-hidden shrink-0">
+                                                                {img ? (
+                                                                    <img
+                                                                        src={img}
+                                                                        alt={`${section.sectionId} thumbnail`}
+                                                                        className="h-full w-full object-cover"
+                                                                        onError={(e) => {
+                                                                            (e.currentTarget as HTMLImageElement).style.display = "none";
+                                                                        }}
+                                                                    />
+                                                                ) : (
+                                                                    <div className="h-12 w-7 rounded-md border-2 border-slate-500 bg-slate-800 relative">
+                                                                        <div className="absolute top-0 left-1/2 -translate-x-1/2 h-1.5 w-3 bg-slate-600 rounded-b" />
+                                                                        <div className="absolute inset-x-1 top-2.5 bottom-2 bg-slate-700 rounded-sm" />
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                            <p className="text-xs text-slate-500">
+                                                                {img ? "Preview of selected image" : "No custom image. Frontend shows default phone visual."}
+                                                            </p>
+                                                        </div>
+                                                        <p className="text-[11px] text-slate-500">
+                                                            Current visual source: {img ? "Custom image URL set" : "Built-in phone visual (no URL)"}
+                                                        </p>
+                                                        <div className="flex gap-2">
+                                                            <Input
+                                                                className="bg-slate-950 border-slate-800 text-white"
+                                                                placeholder="Image URL (optional if uploaded from PC)"
+                                                                value={img || ""}
+                                                                onChange={(e) => updateImageField(idx, imageIndex, e.target.value)}
+                                                            />
+                                                            <label className="inline-flex cursor-pointer items-center rounded-md border border-slate-700 px-3 py-2 text-xs text-slate-200 hover:bg-slate-800">
+                                                                {uploading[`${section.sectionId}-${imageIndex}`] ? (
+                                                                    <Loader2 size={14} className="mr-1 animate-spin" />
+                                                                ) : (
+                                                                    <Upload size={14} className="mr-1" />
+                                                                )}
+                                                                Upload from PC
+                                                                <input
+                                                                    type="file"
+                                                                    accept="image/*"
+                                                                    className="hidden"
+                                                                    onChange={(e) => {
+                                                                        const file = e.target.files?.[0];
+                                                                        void uploadImageFromPc(idx, imageIndex, file);
+                                                                        e.currentTarget.value = "";
+                                                                    }}
+                                                                />
+                                                            </label>
+                                                            <Button
+                                                                type="button"
+                                                                variant="ghost"
+                                                                className="text-slate-400 hover:text-red-500"
+                                                                onClick={() => removeImageField(idx, imageIndex)}
+                                                            >
+                                                                <Trash2 size={16} />
+                                                            </Button>
+                                                        </div>
                                                         {img ? (
                                                             <img
                                                                 src={img}
-                                                                alt={`${section.sectionId} thumbnail ${imageIndex + 1}`}
-                                                                className="h-full w-full object-cover"
+                                                                alt={`${section.sectionId} preview`}
+                                                                className="h-24 w-full object-cover rounded border border-slate-800"
                                                                 onError={(e) => {
                                                                     (e.currentTarget as HTMLImageElement).style.display = "none";
                                                                 }}
                                                             />
-                                                        ) : section.sectionId === "product-not-vault" ? (
-                                                            <div className="h-12 w-7 rounded-md border-2 border-slate-500 bg-slate-800 relative">
-                                                                <div className="absolute top-0 left-1/2 -translate-x-1/2 h-1.5 w-3 bg-slate-600 rounded-b" />
-                                                                <div className="absolute inset-x-1 top-2.5 bottom-2 bg-slate-700 rounded-sm" />
-                                                            </div>
-                                                        ) : (
-                                                            <ImageIcon size={18} className="text-slate-500" />
-                                                        )}
+                                                        ) : null}
                                                     </div>
-                                                    <p className="text-xs text-slate-500">
-                                                        {img
-                                                            ? "Preview of selected image"
-                                                            : section.sectionId === "product-not-vault"
-                                                                ? "No custom image. Frontend shows default phone visual."
-                                                                : "No image selected yet."}
-                                                    </p>
-                                                </div>
-                                                {section.sectionId === "product-not-vault" && (
-                                                    <p className="text-[11px] text-slate-500">
-                                                        Current visual source: {img ? "Custom image URL set" : "Built-in phone visual (no URL)"}
-                                                    </p>
-                                                )}
-                                                <div className="flex gap-2">
-                                                    <Input
-                                                        className="bg-slate-950 border-slate-800 text-white"
-                                                        placeholder="Image URL (optional if uploaded from PC)"
-                                                        value={img || ""}
-                                                        onChange={(e) => updateImageField(idx, imageIndex, e.target.value)}
-                                                    />
-                                                    <label className="inline-flex cursor-pointer items-center rounded-md border border-slate-700 px-3 py-2 text-xs text-slate-200 hover:bg-slate-800">
-                                                        {uploading[`${section.sectionId}-${imageIndex}`] ? (
-                                                            <Loader2 size={14} className="mr-1 animate-spin" />
-                                                        ) : (
-                                                            <Upload size={14} className="mr-1" />
-                                                        )}
-                                                        Upload from PC
-                                                        <input
-                                                            type="file"
-                                                            accept="image/*"
-                                                            className="hidden"
-                                                            onChange={(e) => {
-                                                                const file = e.target.files?.[0];
-                                                                void uploadImageFromPc(idx, imageIndex, file);
-                                                                e.currentTarget.value = "";
-                                                            }}
-                                                        />
-                                                    </label>
-                                                    <Button
-                                                        type="button"
-                                                        variant="ghost"
-                                                        className="text-slate-400 hover:text-red-500"
-                                                        onClick={() => removeImageField(idx, imageIndex)}
-                                                    >
-                                                        <Trash2 size={16} />
-                                                    </Button>
-                                                </div>
-                                                {img ? (
-                                                    <img
-                                                        src={img}
-                                                        alt={`${section.sectionId} preview ${imageIndex + 1}`}
-                                                        className="h-24 w-full object-cover rounded border border-slate-800"
-                                                        onError={(e) => {
-                                                            (e.currentTarget as HTMLImageElement).style.display = "none";
-                                                        }}
-                                                    />
-                                                ) : null}
+                                                ))}
+                                            </>
+                                        ) : (
+                                            <div className="rounded border border-dashed border-slate-800 p-4 text-xs text-slate-500">
+                                                Images are not used on this page. Only the MyNxt product image can be edited.
                                             </div>
-                                        ))}
+                                        )}
                                         <Label className="text-slate-300 mt-2">Order</Label>
                                         <Input
                                             type="number"
