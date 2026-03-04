@@ -7,7 +7,8 @@ import {
     LogOut,
     ChevronLeft,
     ChevronRight,
-    Users
+    Users,
+    Mail
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
